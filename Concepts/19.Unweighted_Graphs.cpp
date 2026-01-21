@@ -42,55 +42,36 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
+void adjacencyMatrix(ll n, ll m) {
+	ll adj[n+1][n+1] = {};
 
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
-
-	while(!q.empty()) {
-		int front = q.front();
-		q.pop();
-
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
-				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
-			}
-		}
+	FOR(m){
+		int x, y;
+		cin >> x >> y;
+		adj[x][y] = 1;
+		adj[y][x] = 1;
 	}
 
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
-
-	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
-			}
-		} else if(col[it] == color) {
-			return false;
-		}
+	// For printing nodes in nicely organised manner
+	cout<< "    ";
+	FOR(n+1) {
+		cout << i << " ";
 	}
+	cout << endl << "   ------------- " << endl;
 
-	return true;
+	FOR(n+1) {
+		// For printing nodes in organized manner
+		cout << i << " | ";
+		FORj(0, n+1) {
+			// Values depicting edge, 0 means no edge, 1 means edge between nodes
+			cout << adj[i][j] << " ";
+		}
+		cout << endl;
+	}
 }
 
-void solve() {
-	ipn;		// no of nodes
-	ip(m);	 	// no of edges
-
-	// Graph input as adjacency list
-	vl adj[n+1];
+void adjacencyList(ll n , ll m) {
+	vector<ll> adj[n+1];
 	FOR(m) {
 		ll x, y;
 		cin >> x >> y;
@@ -98,32 +79,27 @@ void solve() {
 		adj[y].push_back(x);
 	}
 
-	// Printing the adjaceny list
-	int x = 0;
 	cout << "Adjacency List: " << endl;
-	for(auto it: adj) {
-		cout << x++ << " -> ";
-		for(int i=0; i<it.size(); i++) {
-			cout << it[i] << " ";
+	FOR(n+1) {
+		cout << i << " -> ";
+		FORj(0, adj[i].size()) {
+			cout << adj[i][j] << " " ;
 		}
 		cout << endl;
 	}
+}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
-			}
-		}
-	}
+void solve() {
+	ipn;		// no of nodes
+	ip(m);	 	// no of edges
 
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	// 1. ADJACENCY MATRIX
+	// SC: O(n^2)
+	// adjacencyMatrix(n, m);
+
+	// 2. ADJANCENCY LIST
+	// SC: O(E)
+	adjacencyList(n, m);
 }
 
 int main()

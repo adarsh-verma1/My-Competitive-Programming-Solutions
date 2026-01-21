@@ -42,47 +42,20 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
+bool checkCycleUsingDFS(ll node, ll parent, vl adj[], vector<bool> &vis) {
+	vis[node] = true;	// mark the starting node as visited
 
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
-
-	while(!q.empty()) {
-		int front = q.front();
-		q.pop();
-
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
-				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
-			}
-		}
+	for(auto adjacentNode: adj[node]) {
+		if(!vis[adjacentNode]) {
+			if(checkCycleUsingDFS(adjacentNode, node, adj, vis)) {
+				return true;
+			}	
+		} else if(adjacentNode != parent) {
+			return true;
+		} 
 	}
-
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
-
-	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
-			}
-		} else if(col[it] == color) {
-			return false;
-		}
-	}
-
-	return true;
+	
+	return false;
 }
 
 void solve() {
@@ -109,21 +82,17 @@ void solve() {
 		cout << endl;
 	}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
-			}
+	// visited array of n+1 size initialized with all false (not visited) values
+	vector<bool> vis(n+1, false);
+	bool cycle = false;
+
+	FORi(0, n+1) {		// needed for graph with disconnected components
+		if(!vis[i]) {		// if node is not visited (eg: a disconnected node)
+			cycle = cycle || checkCycleUsingDFS(i, -1, adj, vis); // check cycle in each component
 		}
 	}
-
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	
+	cout << "Cycle Present: " << cycle << endl;
 }
 
 int main()

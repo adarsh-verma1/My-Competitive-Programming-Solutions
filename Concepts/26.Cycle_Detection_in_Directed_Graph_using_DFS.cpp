@@ -42,47 +42,28 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
-
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
-
-	while(!q.empty()) {
-		int front = q.front();
-		q.pop();
-
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
-				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
+bool checkCycleDFS(int node, vector<bool>& pathVis, vector<bool>& vis, vl adj[]) {
+	vis[node] = true;
+	pathVis[node] = true;
 
 	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
+		// if the node is not visited
+		if(!vis[it]) {
+			//  do the DFS for the node & check if it has a cycle
+			if(checkCycleDFS(it, pathVis, vis, adj)) {
+				return true;
 			}
-		} else if(col[it] == color) {
-			return false;
+		}
+		// if the node has been previously visited,
+		// check if it is path visited, if yes, then it has a cycle
+		else if(pathVis[it]) {
+			return true;
 		}
 	}
 
-	return true;
+	// while returning from the path, mark the node as not visited for the path
+	pathVis[node] = false;
+	return false;
 }
 
 void solve() {
@@ -95,7 +76,6 @@ void solve() {
 		ll x, y;
 		cin >> x >> y;
 		adj[x].push_back(y);
-		adj[y].push_back(x);
 	}
 
 	// Printing the adjaceny list
@@ -109,21 +89,19 @@ void solve() {
 		cout << endl;
 	}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
+	vector<bool> vis(n+1, false);
+	vector<bool> pathVis(n+1, false);
+
+	FORi(1, n+1) {
+		if(!vis[i]) {
+			if(checkCycleDFS(i, pathVis, vis, adj)) {
+				cout << "Cycle is present" << endl;
+				return;
 			}
 		}
 	}
 
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	cout << "Cycle is not present" << endl;
 }
 
 int main()

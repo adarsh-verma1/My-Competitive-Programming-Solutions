@@ -42,47 +42,16 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
+void DFS(ll start, vl adj[], vector<bool> &vis, vl &dfs) {
+	vis[start] = true;
+	dfs.pb(start);
 
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
-
-	while(!q.empty()) {
-		int front = q.front();
-		q.pop();
-
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
-				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
-			}
+	for(auto it: adj[start]) {
+		// if neighbour node is not visited, add to the queue & mark visited
+		if(!vis[it]) {
+			DFS(it, adj, vis, dfs);
 		}
 	}
-
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
-
-	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
-			}
-		} else if(col[it] == color) {
-			return false;
-		}
-	}
-
-	return true;
 }
 
 void solve() {
@@ -98,32 +67,35 @@ void solve() {
 		adj[y].push_back(x);
 	}
 
-	// Printing the adjaceny list
-	int x = 0;
 	cout << "Adjacency List: " << endl;
-	for(auto it: adj) {
-		cout << x++ << " -> ";
-		for(int i=0; i<it.size(); i++) {
-			cout << it[i] << " ";
+	FOR(n+1) {
+		cout << i << " -> ";
+		FORj(0, adj[i].size()) {
+			cout << adj[i][j] << " " ;
 		}
 		cout << endl;
 	}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
-			}
+	// visited array of n+1 size initialized with all false (not visited) values
+	vector<bool> vis(n+1, false);
+
+	// DFS traversal values
+	vl dfs;
+
+	cout << "DFS Traversal: " << endl;
+
+	// start from 1, assuming first node is 1, and last node is n
+	for(int i=1; i<=n; i++) {	// needed for graph with disconnected components
+		if(!vis[i]) {			// if node is not visited (eg: a disconnected node)
+			// assuming start from node 1
+			DFS(i, adj, vis, dfs);
 		}
 	}
 
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	// Print DFS traversal
+	FORi(0, dfs.size()) {
+		cout << dfs[i] << " ";
+	}
 }
 
 int main()

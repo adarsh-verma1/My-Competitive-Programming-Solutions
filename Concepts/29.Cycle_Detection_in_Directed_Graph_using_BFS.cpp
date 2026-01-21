@@ -42,47 +42,33 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
-
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
-
+void checkCycleBFS(queue<int>& q, vl& indegree, vector<bool>& vis, vl adj[]) {
+	vi ans;
 	while(!q.empty()) {
-		int front = q.front();
+		int node = q.front();
 		q.pop();
+		// add the removed node from the queue in the linear ordering (topo sort)
+		ans.push_back(node);
 
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
+		for(auto it: adj[node]) {
+			// reduce the indegree of the node for which the current node was contributing as indegree
+			indegree[it]--;
+
+			// if indegree becomes 0, insert in the queue
+			if(indegree[it] == 0) {
 				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
 			}
 		}
 	}
 
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
-
-	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
-			}
-		} else if(col[it] == color) {
-			return false;
-		}
+	// if the number of elements in the topological sort is
+	// equal to the number of nodes (here used indegree array size)
+	// then there is no cycle as Topological sort is applicable for DAG
+	if(ans.size() == indegree.size()) {
+		cout << "Cycle is not present";
+	} else {
+		cout << "Cycle is present";
 	}
-
-	return true;
 }
 
 void solve() {
@@ -90,12 +76,17 @@ void solve() {
 	ip(m);	 	// no of edges
 
 	// Graph input as adjacency list
-	vl adj[n+1];
+	vl adj[n];
+	// store indegree of each node
+	vl indegree(n, 0) ;
+	// Queue to store the nodes
+	queue<int> q;
+
 	FOR(m) {
 		ll x, y;
 		cin >> x >> y;
 		adj[x].push_back(y);
-		adj[y].push_back(x);
+		indegree[y]++;
 	}
 
 	// Printing the adjaceny list
@@ -109,21 +100,21 @@ void solve() {
 		cout << endl;
 	}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
-			}
+	// Printing indegree of each node
+	cout << "Indegree of nodes (node - indegree): " << endl;
+	FOR(n) {
+		cout << i << " - " << indegree[i] << endl;
+
+		// if indegree of node is 0, push it in the queue
+		if(indegree[i] == 0) {
+			q.push(i);
 		}
 	}
 
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	// visited array
+	vector<bool> vis(n, false);
+
+	checkCycleBFS(q, indegree, vis, adj);
 }
 
 int main()
