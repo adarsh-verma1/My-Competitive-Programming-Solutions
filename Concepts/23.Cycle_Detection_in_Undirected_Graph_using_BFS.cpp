@@ -42,47 +42,31 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
+bool checkCycleUsingBFS(ll start, vl adj[], vector<bool> &vis) {
 
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
+	queue<pair<ll, ll>> q;	// pair of node and its parent
+	q.push({start, -1});	// push the starting node in queue, -1 as parent for starting node
+	vis[start] = true;		// and mark it as visited
 
+	// if queue is not empty
 	while(!q.empty()) {
-		int front = q.front();
+		// remove the first node it the queue & traverse all its neighbours
+		ll node = q.front().first;		// node value
+		ll parent = q.front().second;	// current node's parent
 		q.pop();
 
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
-				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
+		// iterate for neighbour of each node
+		for(auto it: adj[node]) {
+			// if neighbour node is not visited, add to the queue & mark visited
+			if(!vis[it]) {
+				q.push({it, node});
+				vis[it] = true;
+			} else if(it != parent) {	// if node is already visited and node value is not equal to parent,
+				return true;			// means there is a cycle
 			}
 		}
 	}
-
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
-
-	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
-			}
-		} else if(col[it] == color) {
-			return false;
-		}
-	}
-
-	return true;
+	return false;
 }
 
 void solve() {
@@ -109,21 +93,17 @@ void solve() {
 		cout << endl;
 	}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
-			}
+	// visited array of n+1 size initialized with all false (not visited) values
+	vector<bool> vis(n+1, false);
+	bool cycle = false;
+
+	FORi(0, n+1) {			// needed for graph with disconnected components
+		if(!vis[i]) {		// if node is not visited (eg: a disconnected node)
+			cycle = cycle || checkCycleUsingBFS(i, adj, vis); // check cycle in each component
 		}
 	}
-
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	
+	cout << "Cycle Present: " << cycle << endl;
 }
 
 int main()

@@ -42,47 +42,15 @@ using namespace std;
 #define tc int T; cin >> T; while(T--)
 #define fast ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
 
-bool checkBipartiteUsingBFS(int node, int color, vector<int>&col, vl adj[]) {
-	queue<int> q;
-
-	// pushing the first element
-	q.push(node);
-	col[node] = color;
-
-	while(!q.empty()) {
-		int front = q.front();
-		q.pop();
-
-		for(auto it: adj[front]) {
-			// if adjacent is not colored yet,
-			// color it with opposite
-			if(col[it] == -1) {
-				col[it] = !col[front];
-				q.push(it);
-			} else if(col[it] == col[front]) {
-				// if it is already colored and is of same color, return false
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-
-bool checkBipartiteUsingDFS(int node, int color, vector<int>&col, vl adj[]) {
-	col[node] = color;
+void topologicalDFS(int node, stack<int>& st, vector<bool>& vis, vl adj[]) {
+	vis[node] = true;
 
 	for(auto it: adj[node]) {
-		if(col[it] == -1) {
-			if(checkBipartiteUsingDFS(it, !color, col, adj) == false) {
-				return false;
-			}
-		} else if(col[it] == color) {
-			return false;
+		if(!vis[it]) {
+			topologicalDFS(it, st, vis, adj);
 		}
 	}
-
-	return true;
+	st.push(node);
 }
 
 void solve() {
@@ -90,12 +58,11 @@ void solve() {
 	ip(m);	 	// no of edges
 
 	// Graph input as adjacency list
-	vl adj[n+1];
+	vl adj[n];
 	FOR(m) {
 		ll x, y;
 		cin >> x >> y;
 		adj[x].push_back(y);
-		adj[y].push_back(x);
 	}
 
 	// Printing the adjaceny list
@@ -109,21 +76,20 @@ void solve() {
 		cout << endl;
 	}
 
-	vector<int> col(n+1, -1);
-	bool isBipartite = true;
-	
-	// for each component
-	FORi(1, n) {
-		if(col[i] == -1) {
-			// if(checkBipartiteUsingDFS(1, 0, col, adj) == false) {			
-			if(checkBipartiteUsingBFS(1, 0, col, adj) == false) {
-				isBipartite = false;
-				break;
-			}
+	vector<bool> vis(n, false);
+	stack<int> st;
+
+	FORi(0, n) {
+		if(!vis[i]) {
+			topologicalDFS(i, st, vis, adj);
 		}
 	}
 
-	cout << "Bipartite Graph: " << isBipartite << endl;
+	cout << "Topological Sort using DFS: ";
+	while(!st.empty()) {
+		cout << st.top() << " ";
+		st.pop();
+	}
 }
 
 int main()
